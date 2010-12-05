@@ -245,60 +245,66 @@ describe TicTacToe::Game do
     
   end
 
-  describe "#winner" do
+  describe "winners and losers" do
     let(:lines) { [] }
     
     before(:each) do
       game.instance_variable_get("@board").stub(:lines => lines)
     end
     
-    it "returns nil if game is not over" do
-      game.should_receive(:winning_line).and_return(nil)
+    it "returns nil values if game is not over" do
+      game.should_receive(:winning_line).any_number_of_times.and_return(nil)
       game.winner.should be_nil
+      game.loser.should be_nil
     end
     
-    it "returns non-nil if game is over" do
+    it "returns non-nil values if game is over" do
       player2.should_receive(:token).any_number_of_times.and_return(O)
       player1.should_receive(:token).any_number_of_times.and_return(X)
-      game.should_receive(:winning_line).and_return([X, X, X])
+      game.should_receive(:winning_line).any_number_of_times.and_return([X, X, X])
       game.winner.should_not be_nil
+      game.loser.should_not be_nil
     end
     
     
     context "when 3 'X' tokens in a row" do
       before(:each) do
-        game.should_receive(:winning_line).and_return([X, X, X])
+        game.should_receive(:winning_line).any_number_of_times.and_return([X, X, X])
       end
       
-      it "returns player1 if player1 was playing 'X'" do
+      it "winner is player1 if player1 was playing 'X', loser is player2" do
         player1.should_receive(:token).any_number_of_times.and_return(X)
         player2.should_receive(:token).any_number_of_times.and_return(O)
         game.winner.should == player1
+        game.loser.should == player2
       end
       
-      it "returns player2 if player2 was playing 'X'" do
+      it "winner is player2 if player2 was playing 'X', loser is player1" do
         player1.should_receive(:token).any_number_of_times.and_return(O)
         player2.should_receive(:token).any_number_of_times.and_return(X)
         game.winner.should == player2
+        game.loser.should == player1
       end
       
     end
     
     context "when 3 'O' tokens in a row" do
       before(:each) do
-        game.should_receive(:winning_line).and_return([O, O, O])
+        game.should_receive(:winning_line).any_number_of_times.and_return([O, O, O])
       end
       
-      it "returns player1 if player2 was playing 'O'" do
-        player1.should_receive(:token).any_number_of_times.and_return(X)
-        player2.should_receive(:token).any_number_of_times.and_return(O)
-        game.winner.should == player2
-      end
-      
-      it "returns player2 if player1 was playing 'O'" do
+      it "winner is player1 if player1 was playing 'O', loser is player2" do
         player1.should_receive(:token).any_number_of_times.and_return(O)
         player2.should_receive(:token).any_number_of_times.and_return(X)
         game.winner.should == player1
+        game.loser.should == player2
+      end
+      
+      it "winner player2 if player2 was playing 'O', loser is player1" do
+        player1.should_receive(:token).any_number_of_times.and_return(X)
+        player2.should_receive(:token).any_number_of_times.and_return(O)
+        game.loser.should == player1
+        game.winner.should == player2
       end
     end
   end

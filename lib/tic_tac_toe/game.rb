@@ -47,8 +47,17 @@ module TicTacToe
     end
     
     def winner
-      return unless (line = winning_line)
-      [@player1, @player2].detect {|p| line.join("").match(p.token) }
+      return unless over?
+      players.detect{ |p| winning_line.join("").match(p.token) }
+    end
+    
+    def loser
+      return unless over?
+      players.detect{ |p| p != winner }
+    end
+    
+    def players
+      [@player1, @player2]
     end
     
     def over?

@@ -23,7 +23,6 @@ describe TicTacToe::Player do
         move = subject.next_move(empty_board)
         move[0].should == 0
         move[1].should == 0
-        # [0,1].include?(move[1]).should be_true
       end
 
       it "claims the next ascending cell that is open" do
@@ -41,10 +40,11 @@ describe TicTacToe::Player do
 
       before(:each) do
         subject.instance_variable_set("@knowledge", knowledge)
+        subject.instance_variable_set("@last_status", status)
       end
 
       it "returns the move that has the highest score in the knowldege base" do
-        subject.has_knowledge?(status).should == true
+        subject.has_knowledge?.should == true
         subject.next_move(status).should == move2
       end
     end
@@ -62,12 +62,12 @@ describe TicTacToe::Player do
     
     it "stores a score of 1 if told that the move was good" do
       subject.good_move
-      subject.knowledge.should == { status => [ {move1 => 1} ] }
+      subject.instance_variable_get("@knowledge").should == { status => [ {move1 => 1} ] }
     end
     
     it "stores a score of -1 if told that the move was bad" do
       subject.bad_move
-      subject.knowledge.should == { status => [ {move1 => -1} ] }
+      subject.instance_variable_get("@knowledge").should == { status => [ {move1 => -1} ] }
     end
     
   end
