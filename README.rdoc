@@ -1,3 +1,43 @@
+tic-tac-toe
+behavior
+1 - legal move?
+    - one turn each
+    - on empty cell
+    - within bounds
+    
+2 - game_over? (won/lost)
+    - 3 in a row
+
+
+
+
+state
+ - my symbol
+ - board score(positions)
+
+
+- Player(AI)
+- Board
+
+Learning:
+  Hash  k: status_of_board 
+        v: [[1,2], [2,3]]
+  
+  Match:
+    [
+      [x, o, o],
+      [x, y, z],
+      [x, y, z]
+    ]
+    [[1,2], [1,1]..]
+    
+  all_states = [State(board, score)]
+  match_states = [State]
+  all_moves = [Move(x,y)]
+  
+  h = { State => { Move => State, Move => State, Move => State } }
+  h[State] => hash.inject(0) { |move, state| state.score.max? }
+  
 = tic_tac_toe
 
 Description goes here.
