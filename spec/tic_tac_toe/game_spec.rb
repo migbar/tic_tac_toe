@@ -4,9 +4,13 @@ describe TicTacToe::Game do
   Game = TicTacToe::Game
   Player = TicTacToe::Player
   Board = TicTacToe::Board
+  X = TicTacToe::X
+  O = TicTacToe::O
   
-  let(:player1) { mock Player }
-  let(:player2) { mock Player }
+  let(:player1) { Player.new(X) }
+  let(:player2) { Player.new(O) }
+  let(:board)   { Board.new }
+  let(:game)    { Game.new(player1, player2) }
   
   describe ".train!" do
     it "plays the oponents against each other for the specified number of rounds" do
@@ -23,10 +27,11 @@ describe TicTacToe::Game do
     #   2. ask player 2 for next move (pass in board)
     #     a. if move is legal, update board
     
-    let(:game) { mock(Game, :play => nil) }
+    # let(:game) { mock(Game, :play => nil) }
     
     before(:each) do
       Game.stub(:new => game)
+      game.stub(:play => nil)
     end
     
     it "initializes a new Game" do
@@ -52,25 +57,43 @@ describe TicTacToe::Game do
   
   describe "#play" do
     let(:game) { Game.new(player1, player2) }
+     
+    before(:each) do
+      game.stub(:winner => player1)
+      game.stub(:looser => player2)
+      game.stub(:over? => true)
+    end 
     
     it "plays rounds until someone wins" do
-      game.should_receive(:winner).exactly(5).times.ordered.and_return(nil)
-      game.should_receive(:winner).ordered.and_return(player1)
+      game.should_receive(:over?).exactly(5).times.ordered.and_return(false)
+      game.should_receive(:over?).any_number_of_times.ordered.and_return(true)
       game.should_receive(:play_round).exactly(5).times
       game.play
     end
+    
+    it "tells the winner that it made a good move" do
+      game.winner.should_receive(:good_move)
+      game.play
+    end
+    
+    it "tells the looser that it made a bad move" do
+      game.looser.should_receive(:bad_move)
+      game.play
+    end
+    
   end
+  
   describe "#play_round" do
     let(:game) { Game.new(player1, player2) }
     
     let(:board_status) { mock("Board Status") }
-    let(:next_move)    { mock("Next Move") }
-    let(:next_player)  { mock(Player, :make_move => next_move) }
+    let(:next_move)    { [1,2] }
+    let(:next_player)  { mock(Player, :make_move => next_move, :token => X) }
     let(:legal_move?)  { true }
 
     before(:each) do
-      game.stub(:board_status => board_status, :next_player => next_player, :record_move => nil)
-      game.should_receive(:legal_move?).with(next_move).and_return(legal_move?)
+      game.stub(:board_status => board_status, :next_player => next_player, :update => nil)
+      game.should_receive(:legal_move?).with(1,2).and_return(legal_move?)
     end
     
     it "asks the next player to make a move" do
@@ -79,16 +102,16 @@ describe TicTacToe::Game do
     end
     
     context "when the move is legal" do
-      it "records the move on the board" do
-        game.should_receive(:record_move).with(next_move)
+      it "updates the board" do
+        game.should_receive(:update).with(1, 2, X)
         game.play_round
       end
     end
     
     context "when the move is not legal" do
       let(:legal_move?) { false }
-      it "does not record the move" do
-        game.should_not_receive(:record_move)
+      it "does not update with the move" do
+        game.should_not_receive(:update)
         game.play_round
       end
     end
@@ -113,20 +136,170 @@ describe TicTacToe::Game do
     end
   end
   
-  describe "#record_move" do
-    let(:game) { Game.new(player1, player2) }
-    let(:next_player)  { mock(Player, :make_move => next_move) }
-    let(:next_move)    { mock("Next Move") }
+  describe "#update" do
+    let(:game)         { Game.new(player1, player2) }
+    let(:next_player)  { mock(Player, :make_move => next_move, :token => X) }
+    let(:next_move)    { [1, 2] }
     let(:board_status) { mock("Board Status") }
     
     before(:each) do
       game.stub(:board_status => board_status, :next_player => next_player)
-      game.should_receive(:legal_move?).with(next_move).and_return(true)
+      game.should_receive(:legal_move?).with(1,2).and_return(true)
     end
     
     it "stores the move on the board" do
-      game.instance_variable_get("@board").should_receive(:record).with(next_move)
+      game.instance_variable_get("@board").should_receive(:update).with(1, 2, X)
       game.play_round
+    end
+  end
+  
+  describe "#board_status" do
+    let(:board_status) { mock("Board Status") }
+    
+    it "gets the status from the board" do
+      game.instance_variable_get("@board").should_receive(:status).and_return(board_status)
+      game.board_status.should == board_status
+    end
+  end
+  
+  describe "#legal_move?" do    
+    it "asks the board if the target cell is empty" do
+      game.instance_variable_get("@board").should_receive(:empty?).with(2, 1).and_return(true)
+      game.legal_move?(2,1)
+    end
+  end
+  
+  describe "#over?" do
+    let(:rows)  { [[X, nil, nil], [nil, nil, nil], [nil, nil, nil]]}
+    let(:cols)  { [[X, nil, nil], [nil, nil, nil], [nil, nil, nil]]}
+    let(:diags) { [[X, nil, nil], [nil, nil, nil]] }
+    let(:lines) { rows + cols + diags }
+    
+    before(:each) do
+      player1.should_receive(:token).any_number_of_times.and_return(O)
+      player2.should_receive(:token).any_number_of_times.and_return(X)
+      game.instance_variable_get("@board").stub(:lines => lines)
+    end
+    
+    context "when only one move has been made" do
+      it "returns false" do
+        game.over?.should be_false
+      end      
+    end  
+      
+    context "when there are 3 consecutive cells in the first row with the same token" do
+      let(:rows){ [[X, X, X], [nil, nil, nil], [nil, nil, nil]]}
+      it "returns true" do
+        game.over?.should be_true
+      end
+    end
+    
+    context "when there are 3 consecutive cells in the second row with the same token" do
+      let(:rows){ [[nil, nil, nil], [X, X, X], [nil, nil, nil]]}
+      it "returns true" do
+        game.over?.should be_true
+      end
+    end
+    
+    context "when there are 3 consecutive cells in the third row with the same token" do
+      let(:rows){ [[nil, nil, nil], [nil, nil, nil], [X, X, X]]}
+      it "returns true" do
+        game.over?.should be_true
+      end
+    end
+
+    context "when there are 3 consecutive cells in the first col with the same token" do
+      let(:cols){ [[X, X, X], [nil, nil, nil], [nil, nil, nil]]}
+      it "returns true" do
+        game.over?.should be_true
+      end
+    end
+    
+    context "when there are 3 consecutive cells in the second col with the same token" do
+      let(:cols){ [[nil, nil, nil], [X, X, X], [nil, nil, nil]]}
+      it "returns true" do
+        game.over?.should be_true
+      end
+    end
+    
+    context "when there are 3 consecutive cells in the third col with the same token" do
+      let(:cols){ [[nil, nil, nil], [nil, nil, nil], [X, X, X]]}
+      it "returns true" do
+        game.over?.should be_true
+      end
+    end
+    
+    context "when there are 3 consecutive cells in the first diagonal with the same token" do
+      let(:diags) {[[X, X, X], [nil, nil, nil]]}
+      it "returns true" do
+        game.over?.should be_true 
+      end
+    end
+    
+    context "when there are 3 consecutive cells in the second diagonal with the same token" do
+      let(:diags) {[[nil, nil, nil], [O, O, O]]}
+      it "returns true" do
+        game.over?.should be_true 
+      end
+    end
+    
+  end
+
+  describe "#winner" do
+    let(:lines) { [] }
+    
+    before(:each) do
+      game.instance_variable_get("@board").stub(:lines => lines)
+    end
+    
+    it "returns nil if game is not over" do
+      game.should_receive(:winning_line).and_return(nil)
+      game.winner.should be_nil
+    end
+    
+    it "returns non-nil if game is over" do
+      player2.should_receive(:token).any_number_of_times.and_return(O)
+      player1.should_receive(:token).any_number_of_times.and_return(X)
+      game.should_receive(:winning_line).and_return([X, X, X])
+      game.winner.should_not be_nil
+    end
+    
+    
+    context "when 3 'X' tokens in a row" do
+      before(:each) do
+        game.should_receive(:winning_line).and_return([X, X, X])
+      end
+      
+      it "returns player1 if player1 was playing 'X'" do
+        player1.should_receive(:token).any_number_of_times.and_return(X)
+        player2.should_receive(:token).any_number_of_times.and_return(O)
+        game.winner.should == player1
+      end
+      
+      it "returns player2 if player2 was playing 'X'" do
+        player1.should_receive(:token).any_number_of_times.and_return(O)
+        player2.should_receive(:token).any_number_of_times.and_return(X)
+        game.winner.should == player2
+      end
+      
+    end
+    
+    context "when 3 'O' tokens in a row" do
+      before(:each) do
+        game.should_receive(:winning_line).and_return([O, O, O])
+      end
+      
+      it "returns player1 if player2 was playing 'O'" do
+        player1.should_receive(:token).any_number_of_times.and_return(X)
+        player2.should_receive(:token).any_number_of_times.and_return(O)
+        game.winner.should == player2
+      end
+      
+      it "returns player2 if player1 was playing 'O'" do
+        player1.should_receive(:token).any_number_of_times.and_return(O)
+        player2.should_receive(:token).any_number_of_times.and_return(X)
+        game.winner.should == player1
+      end
     end
   end
 end
