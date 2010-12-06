@@ -258,16 +258,7 @@ describe TicTacToe::Game do
       game.loser.should be_nil
     end
     
-    it "returns non-nil values if game is over" do
-      player2.should_receive(:token).any_number_of_times.and_return(O)
-      player1.should_receive(:token).any_number_of_times.and_return(X)
-      game.should_receive(:winning_line).any_number_of_times.and_return([X, X, X])
-      game.winner.should_not be_nil
-      game.loser.should_not be_nil
-    end
-    
-    
-    context "when 3 'X' tokens in a row" do
+    context "with 3 'X' tokens in a row" do
       before(:each) do
         game.should_receive(:winning_line).any_number_of_times.and_return([X, X, X])
       end
@@ -288,7 +279,7 @@ describe TicTacToe::Game do
       
     end
     
-    context "when 3 'O' tokens in a row" do
+    context "with 3 'O' tokens in a row" do
       before(:each) do
         game.should_receive(:winning_line).any_number_of_times.and_return([O, O, O])
       end
