@@ -9,7 +9,7 @@ module TicTacToe
     
     def next_move(status)
       @last_status = status
-      @last_move = has_knowledge? ? educated_guess : next_sequential
+      @last_move = has_knowledge? ? highest_score_move : next_sequential_move
     end
     
     def good_move
@@ -20,7 +20,7 @@ module TicTacToe
       record_score -1
     end
     
-    def educated_guess
+    def highest_score_move
       next_m = []
       known_moves.inject(0) do |high_score, hash|
         next_m = hash.keys[0] if hash.values[0] > high_score
@@ -43,7 +43,7 @@ module TicTacToe
       @knowledge[@last_status] << {@last_move => value}
     end
     
-    def next_sequential
+    def next_sequential_move
       (0..2).each do |r|
         (0..2).each do |c|
           return [r, c] if @last_status[r][c].nil?
