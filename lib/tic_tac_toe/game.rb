@@ -10,7 +10,7 @@ module TicTacToe
       end
     end
 
-    def self.play(player1, player2, training)
+    def self.play(player1, player2, training=false)
       game = Game.new(player1 ,player2, training)
       game.play
     end

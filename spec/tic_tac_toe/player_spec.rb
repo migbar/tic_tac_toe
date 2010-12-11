@@ -2,7 +2,8 @@ require 'spec_helper'
 
 describe TicTacToe::Player do
   Player = TicTacToe::Player
-  Move   = TicTacToe::Player::Move
+  Move   = TicTacToe::Move
+  Memory = TicTacToe::Memory
   X = TicTacToe::X
   O = TicTacToe::O
   
@@ -21,17 +22,20 @@ describe TicTacToe::Player do
     
     context "when there is knowledge" do
       let(:status) { [[X, nil, nil], [nil, nil, O], [O, nil, nil]] }
-      let(:move1) { Move.new(0,1,0) }
-      let(:move2) { Move.new(0,2,1) }
-      let(:knowledge) { { status => [move1, move2] } }
+      let(:move1)  { Move.new(0,1,0) }
+      let(:move2)  { Move.new(0,2,1) }
+      let(:memory) { Memory.new( status ) }
+      let(:knowledge) { { status => memory } }
 
       before(:each) do
-        subject.instance_variable_set("@knowledge", knowledge)
-        subject.instance_variable_set("@board_status", status)
+        subject.stub(:memory => memory)
       end
 
-      it "returns the move that has the highest score in the knowldege base" do
-        subject.next_move(status).should == move2
+      it "returns a good move from memory" do
+        memory.should_receive(:fetch_good_move).and_return(move2)
+        next_m = subject.next_move(status)
+        next_m.row.should == move2.row
+        next_m.col.should == move2.col
       end
     end
   end
@@ -39,21 +43,21 @@ describe TicTacToe::Player do
   describe "scoring moves" do
     let(:status) { [[X, nil, nil], [nil, nil, O], [O, nil, nil]] }
     let(:move1) { Move.new(0,1,0) }
-    let(:knowledge) { { status => [move1] } }
+    let(:memory) { Memory.new( status ) }
 
     before(:each) do
-      subject.instance_variable_set("@board_status", status)
-      subject.instance_variable_set("@new_move", move1)
+      subject.stub(:current_move => move1)
+      subject.stub(:memory => memory)
     end
     
-    it "stores a score of 1 if told that the move was good" do
+    it "tells memory to put a good move score on the current move" do
+      memory.should_receive(:good_move).with(move1)
       subject.good_move
-      subject.instance_variable_get("@new_move").score.should == 1
     end
     
-    it "stores a score of -1 if told that the move was bad" do
+    it "tells memory to put a bad move score on the current move" do
+      memory.should_receive(:bad_move).with(move1)
       subject.bad_move
-      subject.instance_variable_get("@new_move").score.should == -1
     end
     
   end

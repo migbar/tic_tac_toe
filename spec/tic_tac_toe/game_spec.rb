@@ -3,7 +3,7 @@ require 'spec_helper'
 describe TicTacToe::Game do
   Game = TicTacToe::Game
   Player = TicTacToe::Player
-  Move = TicTacToe::Player::Move
+  Move = TicTacToe::Move
   Board = TicTacToe::Board
   X = TicTacToe::X
   O = TicTacToe::O
@@ -15,7 +15,7 @@ describe TicTacToe::Game do
   
   describe ".train!" do
     it "plays the oponents against each other for the specified number of rounds" do
-      TicTacToe::Game.should_receive(:play).with(player1, player2).exactly(10).times
+      TicTacToe::Game.should_receive(:play).with(player1, player2, true).exactly(10).times
       TicTacToe::Game.train!(player1, player2, 10)
     end
   end
@@ -36,8 +36,13 @@ describe TicTacToe::Game do
     end
     
     it "initializes a new Game" do
-      Game.should_receive(:new).with(player1, player2).and_return(game)
+      Game.should_receive(:new).with(player1, player2, false).and_return(game)
       Game.play(player1, player2)
+    end
+
+    it "initializes a new Game in training mode" do
+      Game.should_receive(:new).with(player1, player2, true).and_return(game)
+      Game.play(player1, player2, true)
     end
     
     it "starts playing the game" do
