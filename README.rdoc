@@ -38,8 +38,13 @@ Learning:
   h = { State => { Move => State, Move => State, Move => State } }
   h[State] => hash.inject(0) { |move, state| state.score.max? }
   
-= tic_tac_toe
-
+  
+  use mongo ? 
+  ./usr/local/mongodb-osx-x86_64-1.4.4/bin/mongod --dbpath /Users/miguel/Documents/development/code/mongo_data
+  
+ ./usr/local/mongodb-osx-x86_64-1.4.4/bin/mongo
+ 
+ 
 Description goes here.
 
 == Contributing to tic_tac_toe

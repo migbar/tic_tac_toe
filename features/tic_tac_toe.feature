@@ -4,8 +4,8 @@ Feature: tic tac toe
   something something something
 
   Scenario: playing 
-    Given a trained tic-tac-toe AI player for 1000 runs
-     When the AI player plays a new player
-     Then the AI player should never loose
-      And when a new player plays the AI player
-     Then the AI player should never loose
+    Given an AI tic-tac-toe that has been trained for 100 runs
+     When when playing against an untrained player
+     Then the AI player should not loose even once in 500 games
+     #  And when a new player plays the AI player
+     # Then the AI player should never loose

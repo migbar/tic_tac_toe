@@ -3,6 +3,7 @@ require 'spec_helper'
 describe TicTacToe::Game do
   Game = TicTacToe::Game
   Player = TicTacToe::Player
+  Move = TicTacToe::Player::Move
   Board = TicTacToe::Board
   X = TicTacToe::X
   O = TicTacToe::O
@@ -60,11 +61,13 @@ describe TicTacToe::Game do
      
     before(:each) do
       game.stub(:winner => player1)
-      game.stub(:looser => player2)
+      game.stub(:loser => player2)
       game.stub(:over? => true)
+      player1.stub(:good_move => nil)
+      player2.stub(:bad_move => nil)
     end 
     
-    it "plays rounds until someone wins" do
+    it "plays rounds until game is over" do
       game.should_receive(:over?).exactly(5).times.ordered.and_return(false)
       game.should_receive(:over?).any_number_of_times.ordered.and_return(true)
       game.should_receive(:play_round).exactly(5).times
@@ -76,8 +79,8 @@ describe TicTacToe::Game do
       game.play
     end
     
-    it "tells the looser that it made a bad move" do
-      game.looser.should_receive(:bad_move)
+    it "tells the loser that it made a bad move" do
+      game.loser.should_receive(:bad_move)
       game.play
     end
     
@@ -87,23 +90,23 @@ describe TicTacToe::Game do
     let(:game) { Game.new(player1, player2) }
     
     let(:board_status) { mock("Board Status") }
-    let(:next_move)    { [1,2] }
-    let(:next_player)  { mock(Player, :make_move => next_move, :token => X) }
+    let(:next_move)    { Move.new(1,2,0) }
+    let(:next_player)  { mock(Player, :next_move => next_move, :token => X) }
     let(:legal_move?)  { true }
 
     before(:each) do
       game.stub(:board_status => board_status, :next_player => next_player, :update => nil)
-      game.should_receive(:legal_move?).with(1,2).and_return(legal_move?)
+      game.should_receive(:legal_move?).with(next_move).and_return(legal_move?)
     end
     
     it "asks the next player to make a move" do
-      game.next_player.should_receive(:make_move).with(game.board_status).and_return(next_move)
+      game.next_player.should_receive(:next_move).with(game.board_status).and_return(next_move)
       game.play_round
     end
     
     context "when the move is legal" do
       it "updates the board" do
-        game.should_receive(:update).with(1, 2, X)
+        game.should_receive(:update).with(next_move, X)
         game.play_round
       end
     end
@@ -138,17 +141,17 @@ describe TicTacToe::Game do
   
   describe "#update" do
     let(:game)         { Game.new(player1, player2) }
-    let(:next_player)  { mock(Player, :make_move => next_move, :token => X) }
-    let(:next_move)    { [1, 2] }
+    let(:next_player)  { mock(Player, :next_move => next_move, :token => X) }
+    let(:next_move)    { Move.new(1,2,0) }
     let(:board_status) { mock("Board Status") }
     
     before(:each) do
       game.stub(:board_status => board_status, :next_player => next_player)
-      game.should_receive(:legal_move?).with(1,2).and_return(true)
+      game.should_receive(:legal_move?).with(next_move).and_return(true)
     end
     
     it "stores the move on the board" do
-      game.instance_variable_get("@board").should_receive(:update).with(1, 2, X)
+      game.instance_variable_get("@board").should_receive(:update).with(next_move.row, next_move.col, X)
       game.play_round
     end
   end
@@ -162,10 +165,12 @@ describe TicTacToe::Game do
     end
   end
   
-  describe "#legal_move?" do    
+  describe "#legal_move?" do   
+    let(:next_move)    { Move.new(1,2,0) }
+     
     it "asks the board if the target cell is empty" do
-      game.instance_variable_get("@board").should_receive(:empty?).with(2, 1).and_return(true)
-      game.legal_move?(2,1)
+      game.instance_variable_get("@board").should_receive(:empty?).with(next_move.row, next_move.col)
+      game.legal_move?(next_move)
     end
   end
   
@@ -187,6 +192,13 @@ describe TicTacToe::Game do
       end      
     end  
       
+    context "when the board is full" do      
+      it "returns true" do
+        game.instance_variable_get("@board").stub(:full? => true)
+        game.over?.should be_true
+      end
+    end 
+    
     context "when there are 3 consecutive cells in the first row with the same token" do
       let(:rows){ [[X, X, X], [nil, nil, nil], [nil, nil, nil]]}
       it "returns true" do
@@ -245,6 +257,43 @@ describe TicTacToe::Game do
     
   end
 
+  describe "#draw?" do
+    before(:each) do
+    end
+    context "when the board is full" do
+      before(:each) do
+        game.instance_variable_get("@board").stub(:full? => true)
+      end
+      
+      it "returns true if there is no winning line" do
+        game.should_receive(:winning_line).any_number_of_times.and_return(nil)
+        game.draw?.should be_true
+      end
+      
+      it "returns false if there is a winning line" do
+        game.should_receive(:winning_line).any_number_of_times.and_return([X, X, X])
+        game.draw?.should be_false
+      end      
+    end
+    
+    context "when the board is not full" do
+      before(:each) do
+        game.instance_variable_get("@board").stub(:full? => false)
+      end
+      
+      it "returns false if there is no winning line" do
+        game.should_receive(:winning_line).any_number_of_times.and_return(nil)
+        game.draw?.should be_false
+      end
+      
+      it "returns false if there is a winning line" do
+        game.should_receive(:winning_line).any_number_of_times.and_return([X, X, X])
+        game.draw?.should be_false
+      end      
+    end
+    
+  end
+  
   describe "winners and losers" do
     let(:lines) { [] }
     

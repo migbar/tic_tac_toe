@@ -7,7 +7,8 @@ rescue Bundler::BundlerError => e
   exit e.status_code
 end
 
-$LOAD_PATH.unshift(File.dirname(__FILE__) + '/../../lib')
-require 'tic_tac_toe'
+# $LOAD_PATH.unshift(File.dirname(__FILE__) + '/../../lib')
+# require 'tic_tac_toe'
+Dir["#{File.dirname(__FILE__)}/../../lib/**/*.rb"].each {|f| require f}
 
 require 'rspec/expectations'

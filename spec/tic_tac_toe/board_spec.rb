@@ -39,6 +39,29 @@ describe TicTacToe::Board do
     it "returns false if a cell is not empty" do
       subject.empty?(0,0).should be_false
     end
+  end
+  
+  describe "#full?" do
+    
+    before(:each) do
+      subject.instance_variable_set("@rows", rows)      
+    end
+    
+    context "when there are available cells" do
+      let(:rows){ [[X, nil, O], [nil, X, nil], [nil, X, O]] }
+      
+      it "returns false" do
+        subject.full?.should be_false
+      end
+    end
+    
+    context "when there are no available cells" do
+      let(:rows){ [[X, X, O], [O, X, O], [X, O, X]] }
+      
+      it "returns true" do
+        subject.full?.should be_true
+      end
+    end
     
   end
   

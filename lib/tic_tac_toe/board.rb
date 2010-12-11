@@ -9,12 +9,26 @@ module TicTacToe
       rows.collect {|r| r.clone}
     end
     
+    # def status
+    #   @rows.flatten.collect do |e|
+    #     e.nil? ? "nil" : e
+    #   end.join("_")
+    # end
+    
     def empty?(row, col)
       rows[row][col].nil?
     end
     
+    def full?
+      @rows.flatten.compact.length == 9
+    end
+    
     def update(row, col, token)
       rows[row][col] = token
+      puts "\n "
+      puts "player(#{token}) moves: to (#{row},#{col})"
+      puts report
+      puts "\n"
     end
     
     def lines
@@ -23,6 +37,14 @@ module TicTacToe
       cols.each  { |c| lines << c.clone }
       diags.each { |d| lines << d.clone }
       lines
+    end
+    
+    def report
+      res = []
+      (0..2).each do |r|
+        res << " #{@rows[r][0] || " "} | #{@rows[r][1] || " "} | #{@rows[r][2] || " "} "
+      end
+      res.join("\n-----------\n")
     end
     
   private
