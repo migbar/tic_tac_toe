@@ -12,3 +12,4 @@ end
 Dir["#{File.dirname(__FILE__)}/../../lib/**/*.rb"].each {|f| require f}
 
 require 'rspec/expectations'
+require 'mongo'

@@ -1,6 +1,6 @@
 module TicTacToe
   class Game
-    attr_reader :player1, :player2, :training
+    attr_reader :player1, :player2, :training, :last_move
 
     def self.train!(player1, player2, rounds)
       i = 1
@@ -8,6 +8,8 @@ module TicTacToe
         play(player1, player2, true)
         puts "GAME #{i += 1}"
       end
+      player1.persist_memory
+      player2.persist_memory
     end
 
     def self.play(player1, player2, training=false)
@@ -23,44 +25,48 @@ module TicTacToe
     
     def play
       play_round while !over?
-      # 2.times do
-      #   play_round
-      # end
-      unless draw?
-        winner.good_move
-        loser.bad_move
-        "\n#{winner.token} wins !! \n#{@board.report}\n********************"
-        return  "\n#{winner.token} WINS !!! \n********************".tap do |msg|
-          puts(msg) unless self.training
+      if draw?
+        # @player1.neutral_move
+        # @player2.neutral_move
+        return "\n DRAW !!! \n********************".tap do |msg|
+          puts(msg) #unless self.training
         end
       else
-        return "\n DRAW !!! \n********************".tap do |msg|
-          puts(msg) unless self.training
+        # winner.good_move(last_move)
+        # loser.opponents_good_move(last_move)
+        puts "winner is - #{winner.token}"
+        winner.winning_move(last_move.row, last_move.col)
+        puts "loser is - #{loser.token}"
+        loser.winning_move(last_move.row, last_move.col)
+        
+        "\n#{winner.token} wins !! \n#{@board.report}\n********************"
+        return  "\n#{winner.token} WINS !!! \n********************".tap do |msg|
+          puts(msg) #unless self.training
         end
       end
     end
     
     def play_round
       up_player = next_player
-      move = up_player.next_move(board_status)
-      update(move, up_player.token) if legal_move?(move)
+      @last_move = up_player.next_move(board_status)
+      update(up_player.token) #if legal_move?(last_move)
     end
-    
+
     def next_player
       @next_player = @next_player == @player1 ? @player2 : @player1
     end
     
-    def update(move, token)
-      @board.update(move.row, move.col, token)
+    def update(token)
+      @board.update(last_move.row, last_move.col, token)
     end
     
     def board_status
       @board.status
     end
     
-    def legal_move?(move)
-      @board.empty?(move.row, move.col)
-    end
+    # def legal_move?(move)
+    #   @board.empty?(move.row, move.col)
+    # end
     
     def winner
       return unless winning_line

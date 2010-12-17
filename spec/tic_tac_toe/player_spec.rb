@@ -17,14 +17,14 @@ describe TicTacToe::Player do
   
   describe "next_move" do
     let(:empty_board){ [[nil, nil, nil], [nil, nil, nil], [nil, nil, nil]] }
-    let(:busy_board){ [[X, O, X], [X, X, O], [O, nil, X]] }
-    let(:full_board){ [[X, O, X], [X, X, O], [O, X, O]] }
+    let(:busy_board){ "X_O_X_X_X_O_O_nil_X" }
+    let(:full_board){ "X_O_X_X_X_O_O_X_O" }
     
     context "when there is knowledge" do
-      let(:status) { [[X, nil, nil], [nil, nil, O], [O, nil, nil]] }
+      let(:status) { "X_nil_nil_nil_nil_O_O_nil_nil" }
       let(:move1)  { Move.new(0,1,0) }
       let(:move2)  { Move.new(0,2,1) }
-      let(:memory) { Memory.new( status ) }
+      let(:memory) { Memory.new( status, X ) }
       let(:knowledge) { { status => memory } }
 
       before(:each) do
@@ -41,12 +41,12 @@ describe TicTacToe::Player do
   end
   
   describe "scoring moves" do
-    let(:status) { [[X, nil, nil], [nil, nil, O], [O, nil, nil]] }
+    let(:status) { "X_nil_nil_nil_nil_O_O_nil_nil" }
     let(:move1) { Move.new(0,1,0) }
-    let(:memory) { Memory.new( status ) }
+    let(:memory) { Memory.new( status, X ) }
 
     before(:each) do
-      subject.stub(:current_move => move1)
+      subject.stub(:last_move => move1)
       subject.stub(:memory => memory)
     end
     
@@ -59,7 +59,6 @@ describe TicTacToe::Player do
       memory.should_receive(:bad_move).with(move1)
       subject.bad_move
     end
-    
   end
 end
  

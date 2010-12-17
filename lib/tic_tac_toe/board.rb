@@ -25,10 +25,10 @@ module TicTacToe
     
     def update(row, col, token)
       rows[row][col] = token
-      puts "\n "
-      puts "player(#{token}) moves: to (#{row},#{col})"
-      puts report
-      puts "\n"
+      # puts "\n "
+      # puts "player(#{token}) moves: to (#{row},#{col})"
+      # puts report
+      # puts "\n"
     end
     
     def lines
